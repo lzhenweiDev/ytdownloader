@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        h1 { text-align: center; margin-bottom: 25px; font-size: 28px; }
+        h1 span { color: #ff0000; }
+        .server-status {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-dot.online { background: #4caf50; animation: pulse 2s infinite; }
+        .status-dot.offline { background: #ff4444; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #111;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #ff0000; }
+        input::placeholder { color: #666; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        button:hover { background: #cc0000; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+        .result.active { display: block; }
+        .video-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #111;
+            border-radius: 10px;
+            border: 1px solid #333;
+            word-break: break-word;
+        }
+        .format-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .format-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .format-item:hover {
+            border-color: #ff0000;
+            background: #1a0000;
+            transform: translateX(5px);
+        }
+        .format-quality { font-weight: 600; font-size: 16px; }
+        .format-size { color: #888; font-size: 13px; }
+        .download-icon { font-size: 20px; }
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+        .message.error { display: block; background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
+        .message.success { display: block; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: #4caf50; }
+        .message.loading { display: block; background: rgba(255,255,0,0.1); border: 1px solid rgba(255,255,0,0.3); color: #ffcc00; }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⬇️ YouTube <span>Downloader</span></h1>
+        
+        <div class="server-status">
+            <div class="status-dot offline" id="statusDot"></div>
+            <span id="statusText">Verbinde mit Server...</span>
+            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:12px;margin:0 0 0 auto;">🔄</button>
+        </div>
+        
+        <input 
+            type="text" 
+            id="urlInput" 
+            placeholder="Füge YouTube-Link ein..."
+            autocomplete="off"
+        />
+        <button id="fetchBtn" onclick="loadFormats()" disabled>🔍 Formate laden</button>
+        
+        <div id="messageBox"></div>
+        
+        <div class="result" id="result">
+            <div class="video-title" id="videoTitle"></div>
+            <div class="format-list" id="formatList"></div>
+        </div>
+    </div>
+
+    <script>
+        // SERVER_URL wird automatisch erkannt
+        const SERVER_URL = window.location.origin;
+        
+        async function checkServer() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const fetchBtn = document.getElementById('fetchBtn');
+            
+            statusText.innerHTML = '<span class="loading-spinner"></span> Prüfe Verbindung...';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/ping`);
+                if (response.ok) {
+                    statusDot.className = 'status-dot online';
+                    statusText.textContent = '✅ Server verbunden - Bereit!';
+                    fetchBtn.disabled = false;
+                }
+            } catch {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = '❌ Server nicht erreichbar';
+                fetchBtn.disabled = true;
+            }
+        }
+        
+        async function loadFormats() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return showMessage('❌ Bitte YouTube-URL eingeben', 'error');
+            
+            const fetchBtn = document.getElementById('fetchBtn');
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = '⏳ Lade Formate...';
+            showMessage('<span class="loading-spinner"></span> Extrahiere Video-Informationen...', 'loading');
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/formats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                document.getElementById('videoTitle').textContent = `📺 ${data.title}`;
+                
+                const formatList = document.getElementById('formatList');
+                formatList.innerHTML = data.formats.map(f => `
+                    <div class="format-item" onclick="downloadVideo('${f.id}', '${f.ext}')">
+                        <span class="format-quality">🎬 ${f.quality}</span>
+                        <span class="format-size">${f.ext.toUpperCase()} • ${f.size}</span>
+                        <span class="download-icon">⬇️</span>
+                    </div>
+                `).join('');
+                
+                document.getElementById('result').classList.add('active');
+                showMessage(`✅ ${data.formats.length} Formate gefunden - Zum Downloaden anklicken`, 'success');
+                
+            } catch (err) {
+                showMessage(`❌ Fehler: ${err.message}`, 'error');
+            } finally {
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = '🔍 Formate laden';
+            }
+        }
+        
+        async function downloadVideo(formatId, ext) {
+            const url = document.getElementById('urlInput').value.trim();
+            showMessage('<span class="loading-spinner"></span> Bereite Download vor...', 'loading');
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/download`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, format_id: formatId })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Download fehlgeschlagen');
+                }
+                
+                const blob = await response.blob();
+                const downloadUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `video.${ext || 'mp4'}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+                
+                showMessage('✅ Download erfolgreich gestartet!', 'success');
+                
+            } catch (err) {
+                showMessage(`❌ Fehler: ${err.message}`, 'error');
+            }
+        }
+        
+        function showMessage(msg, type) {
+            const box = document.getElementById('messageBox');
+            box.innerHTML = `<div class="message ${type}">${msg}</div>`;
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    if (box.querySelector('.message')) {
+                        box.innerHTML = '';
+                    }
+                }, 5000);
+            }
+        }
+        
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadFormats();
+        });
+        
+        checkServer();
+    </script>
+</body>
+</html>
