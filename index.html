@@ -25,9 +25,11 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             border: 1px solid #333;
         }
-        h1 { text-align: center; margin-bottom: 25px; font-size: 28px; }
+        h1 { text-align: center; margin-bottom: 5px; font-size: 28px; }
         h1 span { color: #ff0000; }
-        .server-status {
+        .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+        
+        .status {
             background: #111;
             border: 1px solid #333;
             border-radius: 10px;
@@ -36,7 +38,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 14px;
+            font-size: 13px;
+            flex-wrap: wrap;
         }
         .status-dot {
             width: 10px;
@@ -44,12 +47,14 @@
             border-radius: 50%;
             flex-shrink: 0;
         }
-        .status-dot.online { background: #4caf50; animation: pulse 2s infinite; }
+        .status-dot.online { background: #4caf50; }
         .status-dot.offline { background: #ff4444; }
+        .status-dot.loading { background: #ffaa00; animation: pulse 1s infinite; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.3; }
         }
+        
         input {
             width: 100%;
             padding: 14px 18px;
@@ -64,6 +69,7 @@
         }
         input:focus { border-color: #ff0000; }
         input::placeholder { color: #666; }
+        
         button {
             width: 100%;
             padding: 14px;
@@ -74,49 +80,60 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
             margin-bottom: 10px;
+            transition: all 0.3s;
         }
         button:hover { background: #cc0000; }
         button:disabled { background: #444; cursor: not-allowed; }
-        .result {
-            margin-top: 20px;
-            display: none;
-        }
+        
+        .result { margin-top: 20px; display: none; }
         .result.active { display: block; }
-        .video-title {
-            font-size: 16px;
+        
+        .video-info {
+            padding: 15px;
+            background: #111;
+            border-radius: 10px;
+            border: 1px solid #333;
             margin-bottom: 15px;
-            padding: 15px;
-            background: #111;
-            border-radius: 10px;
-            border: 1px solid #333;
-            word-break: break-word;
         }
-        .format-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .video-title { font-size: 16px; font-weight: 600; margin-bottom: 5px; word-break: break-word; }
+        .video-meta { color: #888; font-size: 13px; }
+        
+        .format-section { margin-bottom: 20px; }
+        .format-section h3 { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+        
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
         }
-        .format-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
+        .format-card {
             background: #111;
             border: 1px solid #333;
             border-radius: 10px;
+            padding: 12px;
             cursor: pointer;
             transition: all 0.3s;
+            text-align: center;
         }
-        .format-item:hover {
+        .format-card:hover {
             border-color: #ff0000;
             background: #1a0000;
-            transform: translateX(5px);
+            transform: translateY(-2px);
         }
-        .format-quality { font-weight: 600; font-size: 16px; }
-        .format-size { color: #888; font-size: 13px; }
-        .download-icon { font-size: 20px; }
+        .format-card .quality { font-size: 18px; font-weight: 700; display: block; }
+        .format-card .details { font-size: 11px; color: #888; margin-top: 4px; }
+        .format-card .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            margin-top: 5px;
+        }
+        .badge.combined { background: rgba(76,175,80,0.2); color: #4caf50; }
+        .badge.video { background: rgba(255,0,0,0.2); color: #ff4444; }
+        .badge.audio { background: rgba(33,150,243,0.2); color: #2196f3; }
+        
         .message {
             padding: 12px;
             border-radius: 8px;
@@ -127,11 +144,25 @@
         }
         .message.error { display: block; background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
         .message.success { display: block; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: #4caf50; }
-        .message.loading { display: block; background: rgba(255,255,0,0.1); border: 1px solid rgba(255,255,0,0.3); color: #ffcc00; }
-        .loading-spinner {
+        .message.info { display: block; background: rgba(33,150,243,0.1); border: 1px solid rgba(33,150,243,0.3); color: #2196f3; }
+        
+        .cookie-warning {
+            background: rgba(255,193,7,0.1);
+            border: 1px solid rgba(255,193,7,0.3);
+            color: #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .cookie-warning.active { display: block; }
+        
+        .spinner {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(255,255,255,0.3);
             border-top-color: #fff;
             border-radius: 50%;
@@ -139,58 +170,72 @@
             margin-right: 8px;
             vertical-align: middle;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⬇️ YouTube <span>Downloader</span></h1>
+        <p class="subtitle">Video-URL einfügen & herunterladen</p>
         
-        <div class="server-status">
-            <div class="status-dot offline" id="statusDot"></div>
-            <span id="statusText">Verbinde mit Server...</span>
-            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:12px;margin:0 0 0 auto;">🔄</button>
+        <div class="cookie-warning" id="cookieWarning">
+            ⚠️ <strong>Cookies erforderlich!</strong><br>
+            Bitte exportiere deine YouTube-Cookies mit "Get cookies.txt LOCALLY" und lade sie hoch.
+        </div>
+        
+        <div class="status">
+            <div class="status-dot loading" id="statusDot"></div>
+            <span id="statusText">Prüfe Server...</span>
+            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:11px;margin:0 0 0 auto;">🔄 Neu prüfen</button>
         </div>
         
         <input 
             type="text" 
             id="urlInput" 
-            placeholder="Füge YouTube-Link ein..."
+            placeholder="YouTube-Link hier einfügen..."
             autocomplete="off"
         />
         <button id="fetchBtn" onclick="loadFormats()" disabled>🔍 Formate laden</button>
         
         <div id="messageBox"></div>
-        
-        <div class="result" id="result">
-            <div class="video-title" id="videoTitle"></div>
-            <div class="format-list" id="formatList"></div>
-        </div>
+        <div class="result" id="result"></div>
     </div>
 
     <script>
-        // SERVER_URL wird automatisch erkannt
         const SERVER_URL = window.location.origin;
+        let cookiesAvailable = false;
         
         async function checkServer() {
-            const statusDot = document.getElementById('statusDot');
-            const statusText = document.getElementById('statusText');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
             const fetchBtn = document.getElementById('fetchBtn');
+            const cookieWarn = document.getElementById('cookieWarning');
             
-            statusText.innerHTML = '<span class="loading-spinner"></span> Prüfe Verbindung...';
+            dot.className = 'status-dot loading';
+            text.innerHTML = '<span class="spinner"></span> Prüfe Verbindung...';
             
             try {
                 const response = await fetch(`${SERVER_URL}/ping`);
-                if (response.ok) {
-                    statusDot.className = 'status-dot online';
-                    statusText.textContent = '✅ Server verbunden - Bereit!';
-                    fetchBtn.disabled = false;
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    dot.className = 'status-dot online';
+                    
+                    if (data.cookies) {
+                        text.textContent = '✅ Server bereit (mit Cookies)';
+                        fetchBtn.disabled = false;
+                        cookiesAvailable = true;
+                        cookieWarn.classList.remove('active');
+                    } else {
+                        text.textContent = '⚠️ Server bereit, aber KEINE Cookies!';
+                        fetchBtn.disabled = false;
+                        cookiesAvailable = false;
+                        cookieWarn.classList.add('active');
+                    }
                 }
             } catch {
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = '❌ Server nicht erreichbar';
+                dot.className = 'status-dot offline';
+                text.textContent = '❌ Server nicht erreichbar';
                 fetchBtn.disabled = true;
             }
         }
@@ -199,10 +244,14 @@
             const url = document.getElementById('urlInput').value.trim();
             if (!url) return showMessage('❌ Bitte YouTube-URL eingeben', 'error');
             
-            const fetchBtn = document.getElementById('fetchBtn');
-            fetchBtn.disabled = true;
-            fetchBtn.textContent = '⏳ Lade Formate...';
-            showMessage('<span class="loading-spinner"></span> Extrahiere Video-Informationen...', 'loading');
+            if (!cookiesAvailable) {
+                return showMessage('⚠️ Cookies fehlen! Bitte cookies.txt hochladen.', 'error');
+            }
+            
+            const btn = document.getElementById('fetchBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Lade...';
+            showMessage('<span class="spinner"></span> Extrahiere Video-Informationen...', 'info');
             
             try {
                 const response = await fetch(`${SERVER_URL}/formats`, {
@@ -215,31 +264,85 @@
                 
                 if (data.error) throw new Error(data.error);
                 
-                document.getElementById('videoTitle').textContent = `📺 ${data.title}`;
+                // Video-Info
+                const duration = data.duration ? 
+                    `${Math.floor(data.duration/60)}:${String(data.duration%60).padStart(2,'0')}` : 
+                    '?';
                 
-                const formatList = document.getElementById('formatList');
-                formatList.innerHTML = data.formats.map(f => `
-                    <div class="format-item" onclick="downloadVideo('${f.id}', '${f.ext}')">
-                        <span class="format-quality">🎬 ${f.quality}</span>
-                        <span class="format-size">${f.ext.toUpperCase()} • ${f.size}</span>
-                        <span class="download-icon">⬇️</span>
+                let html = `
+                    <div class="video-info">
+                        <div class="video-title">📺 ${escapeHtml(data.title)}</div>
+                        <div class="video-meta">⏱️ ${duration} Min</div>
                     </div>
-                `).join('');
+                `;
                 
+                // Formate gruppieren
+                const combined = data.formats.filter(f => 
+                    f.vcodec !== 'none' && f.acodec !== 'none'
+                );
+                const video = data.formats.filter(f => 
+                    f.vcodec !== 'none' && f.acodec === 'none'
+                );
+                const audio = data.formats.filter(f => 
+                    f.vcodec === 'none' && f.acodec !== 'none'
+                );
+                
+                if (combined.length > 0) {
+                    html += '<div class="format-section"><h3>🎬 Video + Audio (kombiniert)</h3><div class="format-grid">';
+                    combined.forEach(f => {
+                        html += createFormatCard(f, 'combined');
+                    });
+                    html += '</div></div>';
+                }
+                
+                if (video.length > 0) {
+                    html += '<div class="format-section"><h3>🎥 Nur Video (ohne Ton)</h3><div class="format-grid">';
+                    video.forEach(f => {
+                        html += createFormatCard(f, 'video');
+                    });
+                    html += '</div></div>';
+                }
+                
+                if (audio.length > 0) {
+                    html += '<div class="format-section"><h3>🔊 Nur Audio</h3><div class="format-grid">';
+                    audio.forEach(f => {
+                        html += createFormatCard(f, 'audio');
+                    });
+                    html += '</div></div>';
+                }
+                
+                document.getElementById('result').innerHTML = html;
                 document.getElementById('result').classList.add('active');
+                
                 showMessage(`✅ ${data.formats.length} Formate gefunden - Zum Downloaden anklicken`, 'success');
                 
             } catch (err) {
-                showMessage(`❌ Fehler: ${err.message}`, 'error');
+                showMessage(`❌ ${err.message}`, 'error');
             } finally {
-                fetchBtn.disabled = false;
-                fetchBtn.textContent = '🔍 Formate laden';
+                btn.disabled = false;
+                btn.textContent = '🔍 Formate laden';
             }
+        }
+        
+        function createFormatCard(format, type) {
+            const badges = {
+                'combined': '<span class="badge combined">Video+Audio</span>',
+                'video': '<span class="badge video">Nur Video</span>',
+                'audio': '<span class="badge audio">Nur Audio</span>'
+            };
+            
+            return `
+                <div class="format-card" onclick="downloadVideo('${format.id}', '${format.ext}')">
+                    <span class="quality">${format.quality}</span>
+                    <span class="details">${format.ext.toUpperCase()} • ${format.size}</span>
+                    ${badges[type] || ''}
+                </div>
+            `;
         }
         
         async function downloadVideo(formatId, ext) {
             const url = document.getElementById('urlInput').value.trim();
-            showMessage('<span class="loading-spinner"></span> Bereite Download vor...', 'loading');
+            showMessage('<span class="spinner"></span> Bereite Download vor...', 'info');
             
             try {
                 const response = await fetch(`${SERVER_URL}/download`, {
@@ -263,10 +366,10 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(downloadUrl);
                 
-                showMessage('✅ Download erfolgreich gestartet!', 'success');
+                showMessage('✅ Download erfolgreich!', 'success');
                 
             } catch (err) {
-                showMessage(`❌ Fehler: ${err.message}`, 'error');
+                showMessage(`❌ ${err.message}`, 'error');
             }
         }
         
@@ -274,19 +377,22 @@
             const box = document.getElementById('messageBox');
             box.innerHTML = `<div class="message ${type}">${msg}</div>`;
             
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => {
-                    if (box.querySelector('.message')) {
-                        box.innerHTML = '';
-                    }
-                }, 5000);
+            if (type === 'success') {
+                setTimeout(() => { box.innerHTML = ''; }, 5000);
             }
+        }
+        
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
         
         document.getElementById('urlInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadFormats();
         });
         
+        // Beim Start prüfen
         checkServer();
     </script>
 </body>
