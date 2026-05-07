@@ -34,26 +34,18 @@
             border: 1px solid #333;
             border-radius: 10px;
             padding: 12px 16px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 13px;
             flex-wrap: wrap;
         }
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.online { background: #4caf50; }
-        .status-dot.offline { background: #ff4444; }
-        .status-dot.loading { background: #ffaa00; animation: pulse 1s infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot.green { background: #4caf50; }
+        .dot.red { background: #ff4444; }
+        .dot.yellow { background: #ffaa00; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
         
         input {
             width: 100%;
@@ -64,7 +56,7 @@
             color: #fff;
             font-size: 14px;
             outline: none;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             transition: border-color 0.3s;
         }
         input:focus { border-color: #ff0000; }
@@ -80,319 +72,235 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             transition: all 0.3s;
         }
-        button:hover { background: #cc0000; }
+        button:hover:not(:disabled) { background: #cc0000; }
         button:disabled { background: #444; cursor: not-allowed; }
         
-        .result { margin-top: 20px; display: none; }
-        .result.active { display: block; }
+        .msg {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 14px;
+            display: none;
+        }
+        .msg.show { display: block; }
+        .msg.error { background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
+        .msg.success { background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: #4caf50; }
+        .msg.info { background: rgba(33,150,243,0.1); border: 1px solid rgba(33,150,243,0.3); color: #2196f3; }
         
-        .video-info {
-            padding: 15px;
+        .result { display: none; margin-top: 15px; }
+        .result.show { display: block; }
+        
+        .video-card {
             background: #111;
-            border-radius: 10px;
             border: 1px solid #333;
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 15px;
         }
-        .video-title { font-size: 16px; font-weight: 600; margin-bottom: 5px; word-break: break-word; }
-        .video-meta { color: #888; font-size: 13px; }
-        
-        .format-section { margin-bottom: 20px; }
-        .format-section h3 { font-size: 14px; color: #aaa; margin-bottom: 10px; }
+        .video-card .vtitle { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+        .video-card .vmeta { font-size: 13px; color: #888; }
         
         .format-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 8px;
+            margin-top: 10px;
         }
-        .format-card {
+        .fmt-btn {
             background: #111;
             border: 1px solid #333;
             border-radius: 10px;
             padding: 12px;
             cursor: pointer;
+            text-align: center;
             transition: all 0.3s;
-            text-align: center;
         }
-        .format-card:hover {
-            border-color: #ff0000;
-            background: #1a0000;
-            transform: translateY(-2px);
-        }
-        .format-card .quality { font-size: 18px; font-weight: 700; display: block; }
-        .format-card .details { font-size: 11px; color: #888; margin-top: 4px; }
-        .format-card .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            margin-top: 5px;
-        }
-        .badge.combined { background: rgba(76,175,80,0.2); color: #4caf50; }
-        .badge.video { background: rgba(255,0,0,0.2); color: #ff4444; }
-        .badge.audio { background: rgba(33,150,243,0.2); color: #2196f3; }
+        .fmt-btn:hover { border-color: #ff0000; background: #1a0000; transform: translateY(-2px); }
+        .fmt-btn .q { font-size: 18px; font-weight: 700; display: block; }
+        .fmt-btn .d { font-size: 11px; color: #888; display: block; margin-top: 3px; }
         
-        .message {
+        .help-box {
+            background: rgba(255,193,7,0.05);
+            border: 1px solid rgba(255,193,7,0.2);
+            border-radius: 10px;
             padding: 12px;
-            border-radius: 8px;
             margin-top: 15px;
-            display: none;
-            text-align: center;
-            font-size: 14px;
-        }
-        .message.error { display: block; background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff4444; }
-        .message.success { display: block; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); color: #4caf50; }
-        .message.info { display: block; background: rgba(33,150,243,0.1); border: 1px solid rgba(33,150,243,0.3); color: #2196f3; }
-        
-        .cookie-warning {
-            background: rgba(255,193,7,0.1);
-            border: 1px solid rgba(255,193,7,0.3);
+            font-size: 12px;
             color: #ffc107;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            text-align: center;
             display: none;
         }
-        .cookie-warning.active { display: block; }
-        
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .help-box.show { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⬇️ YouTube <span>Downloader</span></h1>
-        <p class="subtitle">Video-URL einfügen & herunterladen</p>
-        
-        <div class="cookie-warning" id="cookieWarning">
-            ⚠️ <strong>Cookies erforderlich!</strong><br>
-            Bitte exportiere deine YouTube-Cookies mit "Get cookies.txt LOCALLY" und lade sie hoch.
-        </div>
+        <p class="subtitle">Render-gehostet mit Cookies</p>
         
         <div class="status">
-            <div class="status-dot loading" id="statusDot"></div>
+            <div class="dot yellow" id="statusDot"></div>
             <span id="statusText">Prüfe Server...</span>
-            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:11px;margin:0 0 0 auto;">🔄 Neu prüfen</button>
+            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:11px;margin-left:auto;">🔄</button>
         </div>
         
         <input 
             type="text" 
             id="urlInput" 
-            placeholder="YouTube-Link hier einfügen..."
+            placeholder="YouTube-URL einfügen..."
             autocomplete="off"
         />
         <button id="fetchBtn" onclick="loadFormats()" disabled>🔍 Formate laden</button>
         
-        <div id="messageBox"></div>
+        <div id="msgBox"></div>
+        <div class="help-box" id="helpBox">
+            💡 <strong>Cookies fehlen!</strong><br>
+            1. Exportiere Cookies mit "Get cookies.txt LOCALLY"<br>
+            2. Gehe zu Render → Environment → YOUTUBE_COOKIES<br>
+            3. Füge den Cookie-Text ein → Save
+        </div>
         <div class="result" id="result"></div>
     </div>
 
     <script>
-        const SERVER_URL = window.location.origin;
-        let cookiesAvailable = false;
+        const API = window.location.origin;
         
         async function checkServer() {
             const dot = document.getElementById('statusDot');
             const text = document.getElementById('statusText');
-            const fetchBtn = document.getElementById('fetchBtn');
-            const cookieWarn = document.getElementById('cookieWarning');
+            const btn = document.getElementById('fetchBtn');
+            const help = document.getElementById('helpBox');
             
-            dot.className = 'status-dot loading';
-            text.innerHTML = '<span class="spinner"></span> Prüfe Verbindung...';
+            dot.className = 'dot yellow';
+            text.textContent = 'Prüfe...';
             
             try {
-                const response = await fetch(`${SERVER_URL}/ping`);
-                const data = await response.json();
+                const r = await fetch(`${API}/ping`);
+                const d = await r.json();
                 
-                if (data.status === 'ok') {
-                    dot.className = 'status-dot online';
-                    
-                    if (data.cookies) {
-                        text.textContent = '✅ Server bereit (mit Cookies)';
-                        fetchBtn.disabled = false;
-                        cookiesAvailable = true;
-                        cookieWarn.classList.remove('active');
-                    } else {
-                        text.textContent = '⚠️ Server bereit, aber KEINE Cookies!';
-                        fetchBtn.disabled = false;
-                        cookiesAvailable = false;
-                        cookieWarn.classList.add('active');
-                    }
+                if (d.cookies_working) {
+                    dot.className = 'dot green';
+                    text.textContent = '✅ Server bereit (Cookies aktiv)';
+                    btn.disabled = false;
+                    help.classList.remove('show');
+                } else {
+                    dot.className = 'dot red';
+                    text.textContent = '⚠️ Keine Cookies gefunden!';
+                    btn.disabled = true;
+                    help.classList.add('show');
                 }
             } catch {
-                dot.className = 'status-dot offline';
+                dot.className = 'dot red';
                 text.textContent = '❌ Server nicht erreichbar';
-                fetchBtn.disabled = true;
+                btn.disabled = true;
             }
         }
         
         async function loadFormats() {
             const url = document.getElementById('urlInput').value.trim();
-            if (!url) return showMessage('❌ Bitte YouTube-URL eingeben', 'error');
-            
-            if (!cookiesAvailable) {
-                return showMessage('⚠️ Cookies fehlen! Bitte cookies.txt hochladen.', 'error');
-            }
+            if (!url) return msg('❌ Bitte URL eingeben', 'error');
             
             const btn = document.getElementById('fetchBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ Lade...';
-            showMessage('<span class="spinner"></span> Extrahiere Video-Informationen...', 'info');
+            btn.textContent = '⏳...';
+            msg('🔍 Suche Formate...', 'info');
             
             try {
-                const response = await fetch(`${SERVER_URL}/formats`, {
+                const r = await fetch(`${API}/formats`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url})
                 });
+                const d = await r.json();
                 
-                const data = await response.json();
-                
-                if (data.error) throw new Error(data.error);
-                
-                // Video-Info
-                const duration = data.duration ? 
-                    `${Math.floor(data.duration/60)}:${String(data.duration%60).padStart(2,'0')}` : 
-                    '?';
+                if (d.error) throw new Error(d.error);
                 
                 let html = `
-                    <div class="video-info">
-                        <div class="video-title">📺 ${escapeHtml(data.title)}</div>
-                        <div class="video-meta">⏱️ ${duration} Min</div>
+                    <div class="video-card">
+                        <div class="vtitle">📺 ${esc(d.title)}</div>
+                        <div class="vmeta">
+                            👤 ${esc(d.uploader || 'Unbekannt')} · 
+                            ⏱️ ${Math.floor((d.duration||0)/60)}:${String((d.duration||0)%60).padStart(2,'0')}
+                        </div>
                     </div>
+                    <div class="format-grid">
                 `;
                 
-                // Formate gruppieren
-                const combined = data.formats.filter(f => 
-                    f.vcodec !== 'none' && f.acodec !== 'none'
-                );
-                const video = data.formats.filter(f => 
-                    f.vcodec !== 'none' && f.acodec === 'none'
-                );
-                const audio = data.formats.filter(f => 
-                    f.vcodec === 'none' && f.acodec !== 'none'
-                );
+                d.formats.forEach(f => {
+                    html += `
+                        <div class="fmt-btn" onclick="download('${f.id}','${f.ext}')">
+                            <span class="q">${f.quality}</span>
+                            <span class="d">${f.ext} · ${f.size}</span>
+                        </div>
+                    `;
+                });
                 
-                if (combined.length > 0) {
-                    html += '<div class="format-section"><h3>🎬 Video + Audio (kombiniert)</h3><div class="format-grid">';
-                    combined.forEach(f => {
-                        html += createFormatCard(f, 'combined');
-                    });
-                    html += '</div></div>';
-                }
-                
-                if (video.length > 0) {
-                    html += '<div class="format-section"><h3>🎥 Nur Video (ohne Ton)</h3><div class="format-grid">';
-                    video.forEach(f => {
-                        html += createFormatCard(f, 'video');
-                    });
-                    html += '</div></div>';
-                }
-                
-                if (audio.length > 0) {
-                    html += '<div class="format-section"><h3>🔊 Nur Audio</h3><div class="format-grid">';
-                    audio.forEach(f => {
-                        html += createFormatCard(f, 'audio');
-                    });
-                    html += '</div></div>';
-                }
+                html += '</div>';
                 
                 document.getElementById('result').innerHTML = html;
-                document.getElementById('result').classList.add('active');
+                document.getElementById('result').classList.add('show');
+                msg(`✅ ${d.formats.length} Formate geladen`, 'success');
                 
-                showMessage(`✅ ${data.formats.length} Formate gefunden - Zum Downloaden anklicken`, 'success');
-                
-            } catch (err) {
-                showMessage(`❌ ${err.message}`, 'error');
+            } catch (e) {
+                msg(`❌ ${e.message}`, 'error');
+                if (e.message.includes('Cookies')) {
+                    document.getElementById('helpBox').classList.add('show');
+                }
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🔍 Formate laden';
             }
         }
         
-        function createFormatCard(format, type) {
-            const badges = {
-                'combined': '<span class="badge combined">Video+Audio</span>',
-                'video': '<span class="badge video">Nur Video</span>',
-                'audio': '<span class="badge audio">Nur Audio</span>'
-            };
-            
-            return `
-                <div class="format-card" onclick="downloadVideo('${format.id}', '${format.ext}')">
-                    <span class="quality">${format.quality}</span>
-                    <span class="details">${format.ext.toUpperCase()} • ${format.size}</span>
-                    ${badges[type] || ''}
-                </div>
-            `;
-        }
-        
-        async function downloadVideo(formatId, ext) {
+        async function download(formatId, ext) {
             const url = document.getElementById('urlInput').value.trim();
-            showMessage('<span class="spinner"></span> Bereite Download vor...', 'info');
+            msg('⬇️ Downloade...', 'info');
             
             try {
-                const response = await fetch(`${SERVER_URL}/download`, {
+                const r = await fetch(`${API}/download`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, format_id: formatId })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url, format_id: formatId})
                 });
                 
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'Download fehlgeschlagen');
+                if (!r.ok) {
+                    const e = await r.json();
+                    throw new Error(e.error);
                 }
                 
-                const blob = await response.blob();
-                const downloadUrl = URL.createObjectURL(blob);
+                const blob = await r.blob();
+                const u = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = `video.${ext || 'mp4'}`;
-                document.body.appendChild(a);
+                a.href = u;
+                a.download = `video.${ext}`;
                 a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(downloadUrl);
+                URL.revokeObjectURL(u);
                 
-                showMessage('✅ Download erfolgreich!', 'success');
+                msg('✅ Download fertig!', 'success');
                 
-            } catch (err) {
-                showMessage(`❌ ${err.message}`, 'error');
+            } catch (e) {
+                msg(`❌ ${e.message}`, 'error');
             }
         }
         
-        function showMessage(msg, type) {
-            const box = document.getElementById('messageBox');
-            box.innerHTML = `<div class="message ${type}">${msg}</div>`;
-            
-            if (type === 'success') {
-                setTimeout(() => { box.innerHTML = ''; }, 5000);
-            }
+        function msg(text, type) {
+            const box = document.getElementById('msgBox');
+            box.innerHTML = `<div class="msg ${type} show">${text}</div>`;
+            if (type === 'success') setTimeout(() => box.innerHTML = '', 4000);
         }
         
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
         }
         
-        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+        document.getElementById('urlInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') loadFormats();
         });
         
-        // Beim Start prüfen
         checkServer();
     </script>
 </body>
