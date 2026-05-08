@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Downloader</title>
+    <title>YouTube Downloader - Render</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -39,13 +39,10 @@
             align-items: center;
             gap: 10px;
             font-size: 13px;
-            flex-wrap: wrap;
         }
         .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .dot.green { background: #4caf50; }
-        .dot.red { background: #ff4444; }
-        .dot.yellow { background: #ffaa00; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        .green { background: #4caf50; }
+        .red { background: #ff4444; }
         
         input {
             width: 100%;
@@ -121,29 +118,26 @@
         .fmt-btn:hover { border-color: #ff0000; background: #1a0000; transform: translateY(-2px); }
         .fmt-btn .q { font-size: 18px; font-weight: 700; display: block; }
         .fmt-btn .d { font-size: 11px; color: #888; display: block; margin-top: 3px; }
-        
-        .help-box {
-            background: rgba(255,193,7,0.05);
-            border: 1px solid rgba(255,193,7,0.2);
-            border-radius: 10px;
-            padding: 12px;
-            margin-top: 15px;
-            font-size: 12px;
-            color: #ffc107;
-            display: none;
+        .fmt-btn .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            margin-top: 5px;
         }
-        .help-box.show { display: block; }
+        .badge-v { background: rgba(255,0,0,0.2); color: #ff4444; }
+        .badge-a { background: rgba(33,150,243,0.2); color: #2196f3; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>⬇️ YouTube <span>Downloader</span></h1>
-        <p class="subtitle">Render-gehostet mit Cookies</p>
+        <p class="subtitle">Render Cloud • Funktioniert!</p>
         
         <div class="status">
-            <div class="dot yellow" id="statusDot"></div>
+            <div class="dot red" id="statusDot"></div>
             <span id="statusText">Prüfe Server...</span>
-            <button onclick="checkServer()" style="width:auto;padding:6px 12px;font-size:11px;margin-left:auto;">🔄</button>
+            <button onclick="check()" style="width:auto;padding:6px 12px;font-size:11px;margin-left:auto;">🔄</button>
         </div>
         
         <input 
@@ -152,44 +146,29 @@
             placeholder="YouTube-URL einfügen..."
             autocomplete="off"
         />
-        <button id="fetchBtn" onclick="loadFormats()" disabled>🔍 Formate laden</button>
+        <button id="fetchBtn" onclick="load()" disabled>🔍 Formate laden</button>
         
         <div id="msgBox"></div>
-        <div class="help-box" id="helpBox">
-            💡 <strong>Cookies fehlen!</strong><br>
-            1. Exportiere Cookies mit "Get cookies.txt LOCALLY"<br>
-            2. Gehe zu Render → Environment → YOUTUBE_COOKIES<br>
-            3. Füge den Cookie-Text ein → Save
-        </div>
         <div class="result" id="result"></div>
     </div>
 
     <script>
         const API = window.location.origin;
         
-        async function checkServer() {
+        async function check() {
             const dot = document.getElementById('statusDot');
             const text = document.getElementById('statusText');
             const btn = document.getElementById('fetchBtn');
-            const help = document.getElementById('helpBox');
             
-            dot.className = 'dot yellow';
+            dot.className = 'dot red';
             text.textContent = 'Prüfe...';
             
             try {
                 const r = await fetch(`${API}/ping`);
-                const d = await r.json();
-                
-                if (d.cookies_working) {
+                if (r.ok) {
                     dot.className = 'dot green';
-                    text.textContent = '✅ Server bereit (Cookies aktiv)';
+                    text.textContent = '✅ Server bereit!';
                     btn.disabled = false;
-                    help.classList.remove('show');
-                } else {
-                    dot.className = 'dot red';
-                    text.textContent = '⚠️ Keine Cookies gefunden!';
-                    btn.disabled = true;
-                    help.classList.add('show');
                 }
             } catch {
                 dot.className = 'dot red';
@@ -198,7 +177,7 @@
             }
         }
         
-        async function loadFormats() {
+        async function load() {
             const url = document.getElementById('urlInput').value.trim();
             if (!url) return msg('❌ Bitte URL eingeben', 'error');
             
@@ -229,10 +208,13 @@
                 `;
                 
                 d.formats.forEach(f => {
+                    const type = f.type === 'audio' ? '🎵 Audio' : '🎬 Video';
+                    const badge = f.type === 'audio' ? 'badge-a' : 'badge-v';
                     html += `
-                        <div class="fmt-btn" onclick="download('${f.id}','${f.ext}')">
+                        <div class="fmt-btn" onclick="download('${encodeURIComponent(f.id)}')">
                             <span class="q">${f.quality}</span>
-                            <span class="d">${f.ext} · ${f.size}</span>
+                            <span class="d">${f.size}</span>
+                            <span class="badge ${badge}">${type}</span>
                         </div>
                     `;
                 });
@@ -241,28 +223,24 @@
                 
                 document.getElementById('result').innerHTML = html;
                 document.getElementById('result').classList.add('show');
-                msg(`✅ ${d.formats.length} Formate geladen`, 'success');
+                msg(`✅ ${d.formats.length} Formate gefunden`, 'success');
                 
             } catch (e) {
                 msg(`❌ ${e.message}`, 'error');
-                if (e.message.includes('Cookies')) {
-                    document.getElementById('helpBox').classList.add('show');
-                }
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🔍 Formate laden';
             }
         }
         
-        async function download(formatId, ext) {
-            const url = document.getElementById('urlInput').value.trim();
+        async function download(formatUrl) {
             msg('⬇️ Downloade...', 'info');
             
             try {
                 const r = await fetch(`${API}/download`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({url, format_id: formatId})
+                    body: JSON.stringify({format_id: decodeURIComponent(formatUrl)})
                 });
                 
                 if (!r.ok) {
@@ -274,7 +252,7 @@
                 const u = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = u;
-                a.download = `video.${ext}`;
+                a.download = 'video.mp4';
                 a.click();
                 URL.revokeObjectURL(u);
                 
@@ -298,10 +276,10 @@
         }
         
         document.getElementById('urlInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') loadFormats();
+            if (e.key === 'Enter') load();
         });
         
-        checkServer();
+        check();
     </script>
 </body>
 </html>
